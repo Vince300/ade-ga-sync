@@ -27,6 +27,7 @@ require 'trollop'
 require 'yaml'
 
 # Google API Client
+gem 'google-api-client', '0.8.6'
 require 'google/api_client'
 require 'google/api_client/client_secrets'
 require 'google/api_client/auth/file_storage'

@@ -24,4 +24,4 @@ source 'https://rubygems.org'
 
 gem 'icalendar', '~>2.3.0'
 gem 'trollop', '~>2.1.2'
-gem 'google-api-client', '~>0.9.3'
+gem 'google-api-client', '0.8.6'
