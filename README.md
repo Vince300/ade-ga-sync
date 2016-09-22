@@ -9,7 +9,7 @@ Google Agenda, via l'API Google.
 
 # REQUIREMENTS
 
-* Ruby 1.9.3 ou supérieur
+* Ruby 2.0.0 ou supérieur
 * Gem Bundler
 
 # INSTALLATION
