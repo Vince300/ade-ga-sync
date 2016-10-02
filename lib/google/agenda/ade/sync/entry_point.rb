@@ -1,8 +1,8 @@
 require "date"
-require "icalendar"
 require "open-uri"
-require "trollop"
 require "yaml"
+
+require "trollop"
 
 # Google API Client
 require "google/api_client"
@@ -10,8 +10,10 @@ require "google/api_client/client_secrets"
 require "google/api_client/auth/file_storage"
 require "google/api_client/auth/installed_app"
 
+# ADE Sync dependencies
 require "google/agenda/ade/sync/base"
 require "google/agenda/ade/sync/constants"
+require "google/agenda/ade/sync/event_source"
 
 # On 32-bit Ruby installs, Unix timestamps are created as Bignum instances, 
 # which was not supported by the Ruby Google API client. This should be fixed
@@ -62,12 +64,9 @@ module Google::Agenda::Ade::Sync
       # Parse ICS. The Icalendar gem aborts execution if there is a syntax
       # error because of a corrupted download.
       puts "Parsing calendar..."
-      ics = nil
-      File.open(CALENDAR_FILE, encoding: 'utf-8') do |cal_file|
-        ics = Icalendar.parse(cal_file).first
-      end
+      ics_events = EventSource.load_events(CALENDAR_FILE)
 
-      puts "Found #{ics.events.length} events"
+      puts "Found #{ics_events.length} events"
 
       # Authorize Google Agenda
       calendar_name = config['calendar']
@@ -114,7 +113,7 @@ module Google::Agenda::Ade::Sync
       requests = []
 
       # Create event creation requests
-      ics.events.each do |e|
+      ics_events.each do |e|
         gcal_event = {
           'start' => {
             'dateTime' => e.dtstart.rfc3339
