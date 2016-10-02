@@ -1,6 +1,7 @@
 require "date"
 require "open-uri"
 require "yaml"
+require "tempfile"
 
 require "trollop"
 
@@ -54,18 +55,11 @@ module Google::Agenda::Ade::Sync
 
       # Download ICS file from ADE
       url = config['ics'][0]
-      puts "Downloading calendar from #{url}..."
-      File.open(CALENDAR_FILE, 'wb') do |outf|
-        open(url, 'rb') do |inf|
-          outf.write(inf.read)
-        end
-      end
 
-      # Parse ICS. The Icalendar gem aborts execution if there is a syntax
-      # error because of a corrupted download.
-      puts "Parsing calendar..."
-      ics_events = EventSource.load_events(CALENDAR_FILE)
+      puts "Loading events from #{url}..."
+      ics_events = load_events(url)
 
+      # Print status about read events
       puts "Found #{ics_events.length} events"
 
       # Authorize Google Agenda
@@ -170,5 +164,20 @@ module Google::Agenda::Ade::Sync
         puts "Done!"
       end
     end
+
+    private
+      def self.load_events(url)
+        Tempfile.open('ade_calendar') do |calendar_file|
+          open(calendar_file.path, 'wb') do |outf|
+            # Use open-uri to download the file
+            open(url, 'rb') do |inf|
+              outf.write(inf.read)
+            end
+          end
+
+          # Parse temp file contents as ICS
+          return EventSource.load_events(calendar_file.path)
+        end
+      end
   end
 end

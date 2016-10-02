@@ -2,9 +2,6 @@ require "google/agenda/ade/sync/base"
 require "google/agenda/ade/sync/version"
 
 module Google::Agenda::Ade::Sync
-  # Path to the downloaded iCal file from ADE
-  CALENDAR_FILE = 'calendar.ics'
-
   # Path to the Google API client secret storage
   SECRETS_STORE_FILE = 'calendar-oauth2.json'
   CREDENTIALS_FILE = 'credentials.json'
