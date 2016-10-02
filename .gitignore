@@ -1,3 +1,10 @@
-# Temporary files
-calendar.ics
-credentials.json
+/.bundle/
+/.yardoc
+/Gemfile.lock
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
+/legacy/credentials.json

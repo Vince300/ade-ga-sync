@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require "google/agenda/ade/sync"
+
+# Run default script
+Google::Agenda::Ade::Sync::EntryPoint.run
