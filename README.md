@@ -5,24 +5,42 @@ synchronisation de l'ADE Ensimag avec Google Agenda, via l'API Google.
 
 ## Requirements
 
-* Ruby 2.0.0 ou supérieur
+* Ruby 2.2.3
 * Gem Bundler
 
 ## Installation
 
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'google-agenda-ade-sync'
-```
-
-And then execute:
+Après avoir cloné le dépôt, installer les dépendances en exécutant la commande :
 
     $ bundle
 
-Or install it yourself as:
+### Installation système
 
-    $ gem install google-agenda-ade-sync
+Les outils peuvent être installés sur le système en utilisant la commande :
+
+    $ bundle exec rake install
+
+### Utilisation directe
+
+Génération des binstubs :
+
+    $ bundle install --binstubs
+
+Exécution de la commande principale `ade-ga-sync` :
+
+    $ bin/ade-ga-sync
+
+### Utilisation en tant que gem
+
+Pour utiliser ce gem dans un autre projet, ajouter la ligne suivante au Gemfile :
+
+```ruby
+gem 'google-agenda-ade-sync', :git => 'https://github.com/Vince300/ade-ga-sync.git', :tag => 'v1.0.0'
+```
+
+Puis exécuter :
+
+    $ bundle
 
 ## Usage
 
@@ -35,12 +53,6 @@ mettre à jour à l'aide des données ADE. *Utiliser un calendrier dédié à ce
 outil pour éviter de supprimer des évènements hors-ADE.* Il faut aussi définir
 l'URL d'accès au calendrier ADE en suivant les instructions dans le fichier.
 
-Le script peut ensuite être exécuté avec la commande :
-
-```
-ruby ade-ga-sync.rb
-```
-
 L'exportation ADE ne contient que les 4 semaines suivant la date de 
 l'exportation, il faut donc exécuter le script régulièrement pour obtenir un
 calendrier à jour.
@@ -48,9 +60,8 @@ calendrier à jour.
 ## Development
 
 * Installation des dépendances depuis le dépôt : `bin/setup`.
-* Exécution des tests : `rake spec`.
+* Exécution des tests : `rake test`.
 * Console de test : `bin/console`.
-* Installation locale : `bundle exec rake install`.
 
 # Contributing
 
