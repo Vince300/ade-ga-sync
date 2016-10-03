@@ -2,12 +2,12 @@ require 'spec_helper'
 
 describe Google::Agenda::Ade::Sync::EventSource do
   describe 'local event loading' do
-    before(:all) do
+    before :all do
       url = './spec/fixtures/short_calendar.ics'
       @source = Google::Agenda::Ade::Sync::EventSource.new(url)
     end
 
-    before (:each) do
+    before :each do
       @events = @source.load_events
     end
 
@@ -22,11 +22,11 @@ describe Google::Agenda::Ade::Sync::EventSource do
   end
 
   describe 'remote event loading' do
-    before (:all) do
+    before :all do
       @source = Google::Agenda::Ade::Sync::EventSource.new('http://localhost:8000/short_calendar.ics')
     end
 
-    before (:each) do
+    before :each do
       @events = @source.load_events
     end
 

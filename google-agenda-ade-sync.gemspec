@@ -10,7 +10,6 @@ Gem::Specification.new do |spec|
   spec.email         = ["vincent.tavernier@ensimag.grenoble-inp.fr"]
 
   spec.summary       = %q{google-agenda-ade-sync is a synchronization tool between Google Agenda and Ensimag ADE}
-  # spec.description   = %q{TODO: Write a longer description or delete this line.}
   spec.homepage      = "https://github.com/Vince300/ade-ga-sync"
   spec.license       = "MIT"
 
@@ -30,6 +29,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", "~> 1.11"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
+  spec.add_development_dependency "codecov"
+  spec.add_development_dependency "codeclimate-test-reporter"
 
   spec.add_runtime_dependency 'icalendar', '~>2.3.0'
   spec.add_runtime_dependency 'trollop', '~>2.1.2'

@@ -13,7 +13,7 @@ module Google::Agenda::Ade::Sync
     # Configured path may be an URL using open-uri
     def load_events
       # Default to UTF-8 on local files
-      if File.exists? @ics_file
+      if File.exist? @ics_file
         open(@ics_file, encoding: 'utf-8') do |cal_file|
           return parse_file(cal_file)
         end

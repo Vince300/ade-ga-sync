@@ -165,9 +165,8 @@ module Google::Agenda::Ade::Sync
       end
     end
 
-    private
-      def self.load_events(url)
-        return EventSource.new(url).load_events
-      end
+    def self.load_events(url)
+      return EventSource.new(url).load_events
+    end
   end
 end

@@ -1,4 +1,4 @@
-# google-agenda-ade-sync [![Build Status](https://travis-ci.org/Vince300/ade-ga-sync.svg?branch=version-1.0)](https://travis-ci.org/Vince300/ade-ga-sync)
+# google-agenda-ade-sync [![Build Status](https://travis-ci.org/Vince300/ade-ga-sync.svg?branch=version-1.0)](https://travis-ci.org/Vince300/ade-ga-sync) [![Code Climate](https://codeclimate.com/github/Vince300/ade-ga-sync/badges/gpa.svg)](https://codeclimate.com/github/Vince300/ade-ga-sync)
 
 google-agenda-ade-sync (anciennement ade-ga-sync) est un programme Ruby de
 synchronisation de l'ADE Ensimag avec Google Agenda, via l'API Google.
