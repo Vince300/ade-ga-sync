@@ -167,17 +167,7 @@ module Google::Agenda::Ade::Sync
 
     private
       def self.load_events(url)
-        Tempfile.open('ade_calendar') do |calendar_file|
-          open(calendar_file.path, 'wb') do |outf|
-            # Use open-uri to download the file
-            open(url, 'rb') do |inf|
-              outf.write(inf.read)
-            end
-          end
-
-          # Parse temp file contents as ICS
-          return EventSource.load_events(calendar_file.path)
-        end
+        return EventSource.new(url).load_events
       end
   end
 end

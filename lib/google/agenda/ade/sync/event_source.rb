@@ -1,14 +1,33 @@
 require "icalendar"
+require "open-uri"
 
 require "google/agenda/ade/sync/base"
 
 module Google::Agenda::Ade::Sync
-  module EventSource
-    # Loads events from the first calendar of an UTF-8 encoded ICS file
-    def self.load_events(ics_file)
-      File.open(ics_file, encoding: 'utf-8') do |cal_file|
-        return Icalendar.parse(cal_file).first.events
+  class EventSource
+    def initialize(ics_file)
+      @ics_file = ics_file
+    end
+
+    # Loads events from the configured source file
+    # Configured path may be an URL using open-uri
+    def load_events
+      # Default to UTF-8 on local files
+      if File.exists? @ics_file
+        open(@ics_file, encoding: 'utf-8') do |cal_file|
+          return parse_file(cal_file)
+        end
+      else
+        # Open using default open (maybe open-uri)
+        open(@ics_file) do |cal_file|
+          return parse_file(cal_file)
+        end
       end
     end
+
+    private
+      def parse_file(cal_file)
+        return Icalendar.parse(cal_file).first.events
+      end
   end
 end
