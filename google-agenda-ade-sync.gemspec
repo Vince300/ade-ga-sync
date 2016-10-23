@@ -33,7 +33,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "codeclimate-test-reporter"
 
   spec.add_runtime_dependency 'icalendar', '~>2.3.0'
-  spec.add_runtime_dependency 'trollop', '~>2.1.2'
+  spec.add_runtime_dependency 'commander', '~>4.4.0'
   spec.add_runtime_dependency 'google-api-client', '0.8.6'
 
   spec.add_runtime_dependency 'tzinfo-data'

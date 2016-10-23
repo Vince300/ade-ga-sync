@@ -2,8 +2,7 @@ require "date"
 require "open-uri"
 require "yaml"
 require "tempfile"
-
-require "trollop"
+require "commander/import"
 
 # Google API Client
 require "google/api_client"
@@ -44,23 +43,18 @@ end
 
 module Google::Agenda::Ade::Sync
   module EntryPoint
-    def self.run
-      # Parse command line options
-      opts = Trollop::options do
-        opt :n, "Dry-run, do not update Google Agenda"
-      end
-
+    def self.run(dry_run, config_file, credentials_file, secrets_file)
       # Load tool config
-      config = YAML::load(File.read(CONFIGURATION_FILE, encoding: 'utf-8'))
+      config = YAML::load(File.read(config_file, encoding: 'utf-8'))
 
       # Download ICS file from ADE
       url = config['ics'][0]
 
-      puts "Loading events from #{url}..."
+      say "Loading events from #{url}..."
       ics_events = load_events(url)
 
       # Print status about read events
-      puts "Found #{ics_events.length} events"
+      say "Found #{ics_events.length} events"
 
       # Authorize Google Agenda
       calendar_name = config['calendar']
@@ -72,9 +66,9 @@ module Google::Agenda::Ade::Sync
       # of the application. This avoids prompting the user for authorization every
       # time the access token expires, by remembering the refresh token.
       # Note: FileStorage is not suitable for multi-user applications.
-      file_storage = Google::APIClient::FileStorage.new(CREDENTIALS_FILE)
+      file_storage = Google::APIClient::FileStorage.new(credentials_file)
       if file_storage.authorization.nil?
-        client_secrets = Google::APIClient::ClientSecrets.load(SECRETS_STORE_FILE)
+        client_secrets = Google::APIClient::ClientSecrets.load(secrets_file)
         # The InstalledAppFlow is a helper class to handle the OAuth 2.0 installed
         # application flow, which ties in with FileStorage to store credentials
         # between runs.
@@ -91,16 +85,16 @@ module Google::Agenda::Ade::Sync
       service = client.discovered_api('calendar', 'v3')
 
       # Find calendar
-      puts "Trying to access calendar #{calendar_name}..."
+      say "Trying to access calendar #{calendar_name}..."
       GapiUtil.on_result result = client.execute(:api_method => service.calendar_list.list,
                                                 :parameters => { 'minAccessRole' => 'writer' })
 
       calendar = result.data.items.select { |cal| cal['summary'] == calendar_name }.first
 
       if calendar
-        puts "Found calendar with id #{calendar.id}"
+        say "Found calendar with id #{calendar.id}"
       else
-        puts "Calendar #{calendar_name} not found"
+        say "Calendar #{calendar_name} not found"
         exit 1
       end
 
@@ -145,7 +139,7 @@ module Google::Agenda::Ade::Sync
             :parameters => { 'calendarId' => calendar.id,
                             'eventId' => event.id }
           }
-          puts "Found #{event.summary}"
+          say "Found #{event.summary}"
         end
 
         # Event data is paginated
@@ -158,10 +152,10 @@ module Google::Agenda::Ade::Sync
       end
 
       # Send requests, unless this is a dry-run
-      unless opts[:n]
+      unless dry_run
         requests.reverse!
         GapiUtil.send_requests(client, requests)
-        puts "Done!"
+        say "Done!"
       end
     end
 
