@@ -1,4 +1,4 @@
-require "commander/import"
+require "commander"
 require "launchy"
 
 # Google API Client
@@ -16,6 +16,8 @@ SCOPE = Google::Apis::CalendarV3::AUTH_CALENDAR
 
 module Google::Agenda::Ade::Sync
   module EntryPoint
+    include Commander::Methods
+
     # Authorize the Google API user
     def self.authorize(client_secrets, credentials)
       client_id = Google::Auth::ClientId.from_file(client_secrets)
