@@ -34,7 +34,8 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'icalendar', '~>2.3.0'
   spec.add_runtime_dependency 'commander', '~>4.4.0'
-  spec.add_runtime_dependency 'google-api-client', '0.8.6'
+  spec.add_runtime_dependency 'google-api-client', '~>0.9'
+  spec.add_runtime_dependency 'launchy', '~>2.0'
 
   spec.add_runtime_dependency 'tzinfo-data'
 end

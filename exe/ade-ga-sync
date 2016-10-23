@@ -1,8 +1,10 @@
 #!/usr/bin/env ruby
 
 require 'bundler/setup'
-require 'google/agenda/ade/sync'
 require 'commander/import'
+
+require 'google/agenda/ade/sync'
+require 'json'
 
 program :name, 'ade-ga-sync'
 program :version, Google::Agenda::Ade::Sync::VERSION
@@ -14,28 +16,53 @@ program :help, 'Author', 'Vincent Tavernier <vincent.tavernier@ensimag.grenoble-
 default_command :sync
 command :sync do |c|
   c.option '-n', '--dry-run', 'Do not update target Google Agenda'
-  c.option '-c', '--config', String, "Path to config file. Defaults to #{Google::Agenda::Ade::Sync::CONFIGURATION_FILE}"
-  c.option '-k', '--credentials', String, "Path to the API credentials file. Defaults to #{Google::Agenda::Ade::Sync::CREDENTIALS_FILE}"
-  c.option '-s', '--secrets', String, "Path to the Oauth2 secrets storage file. Defaults to #{Google::Agenda::Ade::Sync::SECRETS_STORE_FILE}"
+  c.option '-c', '--config FILE', String, "Path to config file. Defaults to #{Google::Agenda::Ade::Sync::CONFIGURATION_FILE}"
+  c.option '-k', '--credentials FILE', String, "Path to the API credentials file. Defaults to #{Google::Agenda::Ade::Sync::API_CREDENTIALS_FILE}"
+  c.option '-t', '--token FILE', String, "Path to the Oauth2 token storage file (will be created on first login). Defaults to #{Google::Agenda::Ade::Sync::OAUTH_TOKEN_FILE}"
   c.option '--skip-verify', "Skip SSL certificate verification."
   c.action do |args, options|
     # Setup defaults
     options.default :dry_run => false,
                     :config => Google::Agenda::Ade::Sync::CONFIGURATION_FILE,
-                    :credentials => Google::Agenda::Ade::Sync::CREDENTIALS_FILE,
-                    :secrets => Google::Agenda::Ade::Sync::SECRETS_STORE_FILE,
+                    :credentials => Google::Agenda::Ade::Sync::API_CREDENTIALS_FILE,
+                    :token => Google::Agenda::Ade::Sync::OAUTH_TOKEN_FILE,
                     :skip_verify => false
 
     # Setup OpenSSL verify
     if options.skip_verify
+      # http://stackoverflow.com/a/3377188
+      OpenSSL::SSL.send(:remove_const, :VERIFY_PEER)
       # http://stackoverflow.com/a/1113614
       OpenSSL::SSL.const_set(:VERIFY_PEER, OpenSSL::SSL::VERIFY_NONE)
     end
 
+    # Check the credentials file
+    begin
+      credentials = JSON.load(File.read(options.credentials))
+      fail unless credentials.has_key? 'installed'
+    rescue StandardError => e
+      fail <<-ERR.gsub(/^ */, '').gsub(/\r?\n/, ' ').gsub(/ $/, '')
+      #{options.credentials} doesn't appear to be a valid credentials
+      file. Make sure you downloaded it from the API console at
+      https://console.developers.google.com/apis/api/calendar/overview
+      ERR
+    end
+
+    # Load the config file
+    config = nil
+    begin
+      config = JSON.load(File.read(options.config))
+    rescue StandardError => e
+      fail <<-ERR.gsub(/^ */, '').gsub(/\r?\n/, ' ').gsub(/ $/, '')
+        #{options.config} doesn't appear to be a valid config file. Make
+        sure to follow the instructions from the manual
+      ERR
+    end
+
     # Start entry point
     Google::Agenda::Ade::Sync::EntryPoint.run(options.dry_run,
-                                              options.config,
+                                              config,
                                               options.credentials,
-                                              options.secrets)
+                                              options.token)
   end
 end

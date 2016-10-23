@@ -1,0 +1,10 @@
+{
+  "ics": [
+    // URL de téléchargement du fichier ICS depuis ADE, utiliser https://edt.grenoble-inp.fr/directCal/2016-2017/exterieur?resources=
+    // et remplacer la valeur de resources en utilisant le paramètre indiqué dans l'URL de la page principale d'ADE
+    "https://edt.grenoble-inp.fr/directCal/2016-2017/exterieur?resources=10347,1043,16322,16315,1072,16326,16325,1108,1112,6213,16333,16334,16320,16300,994,5056,16309,16310,16312,16302,16305,16303,6232,10349"
+  ],
+  // Nom du calendrier Google dédié au script. Ne pas utiliser l'agenda par défaut
+  // ou les évènements inconnus seront supprimés lors de la mise à jour.
+  "calendar": "Cours"
+}

@@ -1,52 +1,91 @@
-require "date"
-require "open-uri"
-require "yaml"
-require "tempfile"
 require "commander/import"
+require "launchy"
 
 # Google API Client
-require "google/api_client"
-require "google/api_client/client_secrets"
-require "google/api_client/auth/file_storage"
-require "google/api_client/auth/installed_app"
+require "google/apis/calendar_v3"
+require "googleauth"
+require "googleauth/stores/file_token_store"
 
 # ADE Sync dependencies
 require "google/agenda/ade/sync/base"
 require "google/agenda/ade/sync/constants"
 require "google/agenda/ade/sync/event_source"
 
-# On 32-bit Ruby installs, Unix timestamps are created as Bignum instances, 
-# which was not supported by the Ruby Google API client. This should be fixed
-# one day, but here we just patch the method.
-module Signet
-  module OAuth2
-    class Client
-      alias_method :o_normalize_timestamp, :normalize_timestamp
-      def normalize_timestamp(time)
-        case time
-        when NilClass
-          nil
-        when Time
-          time
-        when String
-          Time.parse(time)
-        when Fixnum, Bignum
-          #Adding Bignum ^ here as timestamps like 1453983084 are bignums on 32-bit systems
-          Time.at(time)
-        else
-          fail "Invalid time value #{time}"
-        end
-      end
-    end
-  end
-end
+OOB_URI = "urn:ietf:wg:oauth:2.0:oob"
+SCOPE = Google::Apis::CalendarV3::AUTH_CALENDAR
 
 module Google::Agenda::Ade::Sync
   module EntryPoint
-    def self.run(dry_run, config_file, credentials_file, secrets_file)
-      # Load tool config
-      config = YAML::load(File.read(config_file, encoding: 'utf-8'))
+    # Authorize the Google API user
+    def self.authorize(client_secrets, credentials)
+      client_id = Google::Auth::ClientId.from_file(client_secrets)
+      token_store = Google::Auth::Stores::FileTokenStore.new(file: credentials)
+      authorizer = Google::Auth::UserAuthorizer.new(
+        client_id, SCOPE, token_store)
+      user_id = 'default'
+      credentials = authorizer.get_credentials(user_id)
+      if credentials.nil?
+        url = authorizer.get_authorization_url(
+          base_url: OOB_URI)
+        say "Your default browser should open so you can authorize this tool " +
+            "to edit your Google Calendar data."
+        say "If your browser didn't open, follow this link manually."
+        say url
 
+        # Open default browser
+        Launchy.open(url)
+
+        code = ask('Enter the authentication code you received: ')
+        fail "aborted" if code.nil? or code.empty?
+        credentials = authorizer.get_and_store_credentials_from_code(
+          user_id: user_id, code: code, base_url: OOB_URI)
+      end
+      credentials
+    end
+
+    # Find a calendar by its name
+    def self.find_calendar_by_name(client, name)
+      page_token = nil
+      begin
+        result = client.list_calendar_lists(page_token: page_token)
+        result.items.each do |e|
+          if e.summary == name
+            return e
+          end
+        end
+
+        if result.next_page_token != page_token
+          page_token = result.next_page_token
+        else
+          page_token = nil
+        end
+      end while !page_token.nil?
+      nil
+    end
+
+    # Return events to delete
+    def self.get_events_to_delete(client, calendar_id, start_at)
+      events = []
+
+      page_token = nil
+      begin
+        result = client.list_events(calendar_id,
+                                    time_min: start_at.rfc3339,
+                                    page_token: page_token)
+        result.items.each do |e|
+          say "Found event in Google Calendar: #{e.summary}"
+          events << e
+        end
+        if result.next_page_token != page_token
+          page_token = result.next_page_token
+        else
+          page_token = nil
+        end
+      end while !page_token.nil?
+      events
+    end
+
+    def self.run(dry_run, config, credentials_file, token_file)
       # Download ICS file from ADE
       url = config['ics'][0]
 
@@ -59,103 +98,51 @@ module Google::Agenda::Ade::Sync
       # Authorize Google Agenda
       calendar_name = config['calendar']
 
-      client = Google::APIClient.new(:application_name => GOOGLE_API_APPNAME,
-                                    :application_version => GOOGLE_API_APPVERS)
+      client = Google::Apis::CalendarV3::CalendarService.new
+      client.client_options.application_name = "ade-ga-sync"
+      client.authorization = authorize(credentials_file, token_file)
 
-      # FileStorage stores auth credentials in a file, so they survive multiple runs
-      # of the application. This avoids prompting the user for authorization every
-      # time the access token expires, by remembering the refresh token.
-      # Note: FileStorage is not suitable for multi-user applications.
-      file_storage = Google::APIClient::FileStorage.new(credentials_file)
-      if file_storage.authorization.nil?
-        client_secrets = Google::APIClient::ClientSecrets.load(secrets_file)
-        # The InstalledAppFlow is a helper class to handle the OAuth 2.0 installed
-        # application flow, which ties in with FileStorage to store credentials
-        # between runs.
-        flow = Google::APIClient::InstalledAppFlow.new(
-          :client_id => client_secrets.client_id,
-          :client_secret => client_secrets.client_secret,
-          :scope => ['https://www.googleapis.com/auth/calendar']
-        )
-        client.authorization = flow.authorize(file_storage)
-      else
-        client.authorization = file_storage.authorization
-      end
-
-      service = client.discovered_api('calendar', 'v3')
-
-      # Find calendar
+      # Load calendar
       say "Trying to access calendar #{calendar_name}..."
-      GapiUtil.on_result result = client.execute(:api_method => service.calendar_list.list,
-                                                :parameters => { 'minAccessRole' => 'writer' })
-
-      calendar = result.data.items.select { |cal| cal['summary'] == calendar_name }.first
+      calendar = find_calendar_by_name(client, calendar_name)
 
       if calendar
         say "Found calendar with id #{calendar.id}"
       else
-        say "Calendar #{calendar_name} not found"
-        exit 1
+        fail "Calendar #{calendar_name} not found"
       end
 
-      requests = []
+      # Find obsolete events
+      old_events = get_events_to_delete(client, calendar.id, Date.today.to_datetime)
 
-      # Create event creation requests
-      ics_events.each do |e|
-        gcal_event = {
-          'start' => {
-            'dateTime' => e.dtstart.rfc3339
-          },
-          'end' => {
-            'dateTime' => e.dtend.rfc3339
-          },
-          'summary' => e.summary,
-          'location' => e.location,
-          'description' => e.description,
-          # 'iCalUID' => e.uid, # skipped because it was inconsistent on ADE
-          'sequence' => e.sequence
-        }
-
-        requests << {
-          :api_method => service.events.insert,
-          :parameters => {
-            'calendarId' => calendar.id
-          },
-          :body_object => gcal_event
-        }
-      end
-
-      # Find events to delete, starting today
-      GapiUtil.on_result result = client.execute(:api_method => service.events.list,
-                                                :parameters => { 'calendarId' => calendar.id,
-                                                                  'timeMin' => Date.today.to_datetime.rfc3339 })
-
-      # Parse results and append event deletion requests to the list of pending requests
-      page_token = ""
-      while not page_token.nil?
-        result.data.items.select { |event| event.status != 'cancelled' }.each do |event|
-          requests << {
-            :api_method => service.events.delete,
-            :parameters => { 'calendarId' => calendar.id,
-                            'eventId' => event.id }
-          }
-          say "Found #{event.summary}"
-        end
-
-        # Event data is paginated
-        page_token = result.data.next_page_token
-        if page_token
-          GapiUtil.on_result result = client.execute(:api_method => service.events.list,
-                                                    :parameters => { 'calendarId' => calendar.id,
-                                                                      'pageToken' => page_token })
-        end
-      end
-
-      # Send requests, unless this is a dry-run
       unless dry_run
-        requests.reverse!
-        GapiUtil.send_requests(client, requests)
-        say "Done!"
+        client.batch do |client|
+          # Delete all events
+          old_events.each do |e|
+            client.delete_event(calendar.id, e.id) do
+              say "Removed #{e.id}"
+            end
+          end
+
+          # Create event creation requests
+          ics_events.each do |e|
+            gcal_event = Google::Apis::CalendarV3::Event.new(
+              summary: e.summary,
+              location: e.location,
+              description: e.description,
+              sequence: e.sequence,
+              start: {
+                date_time: e.dtstart.rfc3339
+              },
+              end: {
+                date_time: e.dtend.rfc3339
+              })
+
+            client.insert_event(calendar.id, gcal_event) do
+              say "Created #{gcal_event.summary}"
+            end
+          end
+        end
       end
     end
 
