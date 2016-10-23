@@ -5,8 +5,93 @@ synchronisation de l'ADE Ensimag avec Google Agenda, via l'API Google.
 
 ## Requirements
 
-* Ruby 2.2.3
-* Gem Bundler
+* Ruby 2.2.3 (via RVM (préféré) ou package manager)
+* Gem Bundler (`gem install bundler`)
+
+## Quick start
+
+### Installation des dépendances
+
+Dans le dossier du projet :
+
+```bash
+bundle install --binstubs
+```
+
+### Configuration de l'API Google
+
+Ce script nécessite une clé d'accès aux API Google, qui peut être obtenue ici :
+https://console.developers.google.com/apis/api/calendar/overview. Les clés
+générées sont à remplacer dans le fichier `calendar-oauth2.json`. Ce fichier
+doit ressembler au code suivant :
+
+```json
+{
+  "installed": {
+    "client_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com",
+    "project_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://accounts.google.com/o/oauth2/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_secret": "xxxxxxxxxxxxxxxxxxxxxxx",
+    "redirect_uris": [
+      "urn:ietf:wg:oauth:2.0:oob",
+      "http://localhost"
+    ]
+  }
+}
+```
+
+### Configuration de l'outil
+
+Le fichier `ade-ga-sync.json` permet de définir le nom du calendrier Google à 
+mettre à jour à l'aide des données ADE. *Utiliser un calendrier dédié à cet 
+outil pour éviter de supprimer des évènements hors-ADE.* Il faut aussi définir
+l'URL d'accès au calendrier ADE en suivant les instructions dans le fichier. Un
+exemple de fichier de configuration est représenté ci-dessous :
+
+```json
+{
+  // URL de téléchargement du fichier ICS depuis ADE, utiliser https://edt.grenoble-inp.fr/directCal/2016-2017/exterieur?resources=
+    // et remplacer la valeur de resources en utilisant le paramètre indiqué dans l'URL de la page principale d'ADE
+  "ics": "https://edt.grenoble-inp.fr/directCal/2016-2017/exterieur?resources=10347,1043,16322,16315,1072,16326,16325,1108,1112,6213,16333,16334,16320,16300,994,5056,16309,16310,16312,16302,16305,16303,6232,10349",
+  // Nom du calendrier Google dédié au script. Ne pas utiliser l'agenda par défaut
+  // ou les évènements inconnus seront supprimés lors de la mise à jour.
+  "calendar": "Cours"
+}
+```
+
+### Synchronisation
+
+La synchronisation s'effectue ensuite en exécutant le script principal :
+
+```bash
+bin/ade-ga-sync
+```
+
+Si les fichiers de configuration sont stockés ailleurs, ils peuvent être
+renseignés sur la ligne de commande :
+
+```bash
+bin/ade-ga-sync --config      path/to/config.json \
+                --credentials path/to/calendar-oauth2.json \
+                --token       path/to/oauth-token.yml
+```
+
+La connexion au compte Google s'effectue via le navigateur. Le code retourné
+doit ensuite être fourni à l'outil pour qu'il puisse modifier le calendrier
+spécifié.
+
+### Utilisation de HTTPS
+
+Si le téléchargement du calendrier via HTTPS échoue, l'option `--skip-verify`
+peut être utilisée.
+
+### Intervalle de mise à jour
+
+L'exportation ADE ne contient que les 4 semaines suivant la date de 
+l'exportation, il faut donc exécuter le script régulièrement pour obtenir un
+calendrier à jour.
 
 ## Installation
 
@@ -41,21 +126,6 @@ gem 'google-agenda-ade-sync', :git => 'https://github.com/Vince300/ade-ga-sync.g
 Puis exécuter :
 
     $ bundle
-
-## Usage
-
-Ce script nécessite une clé d'accès aux API Google, qui peut être obtenue ici :
-https://console.developers.google.com/apis/api/calendar/overview. Les clés
-générées sont à remplacer dans le fichier `calendar-oauth2.json`.
-
-Le fichier `ade-ga-sync.yml` permet de définir le nom du calendrier Google à 
-mettre à jour à l'aide des données ADE. *Utiliser un calendrier dédié à cet 
-outil pour éviter de supprimer des évènements hors-ADE.* Il faut aussi définir
-l'URL d'accès au calendrier ADE en suivant les instructions dans le fichier.
-
-L'exportation ADE ne contient que les 4 semaines suivant la date de 
-l'exportation, il faut donc exécuter le script régulièrement pour obtenir un
-calendrier à jour.
 
 ## Development
 

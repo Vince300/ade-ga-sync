@@ -4,7 +4,7 @@ require "google/agenda/ade/sync/version"
 module Google::Agenda::Ade::Sync
   # Path to the Google API client secret storage
   API_CREDENTIALS_FILE = 'calendar-oauth2.json'
-  OAUTH_TOKEN_FILE = 'credentials.json'
+  OAUTH_TOKEN_FILE = 'credentials.yml'
 
   # Settings for the Google API
   GOOGLE_API_APPNAME = 'google-agenda-ade-sync'

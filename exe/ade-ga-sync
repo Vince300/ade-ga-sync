@@ -15,7 +15,8 @@ program :help, 'Author', 'Vincent Tavernier <vincent.tavernier@ensimag.grenoble-
 
 default_command :sync
 command :sync do |c|
-  c.option '-n', '--dry-run', 'Do not update target Google Agenda'
+  c.description = 'Synchronizes future events in a Google Calendar from ADE resources'
+  c.option '-n', '--dry-run', 'Do not update target Google Calendar'
   c.option '-c', '--config FILE', String, "Path to config file. Defaults to #{Google::Agenda::Ade::Sync::CONFIGURATION_FILE}"
   c.option '-k', '--credentials FILE', String, "Path to the API credentials file. Defaults to #{Google::Agenda::Ade::Sync::API_CREDENTIALS_FILE}"
   c.option '-t', '--token FILE', String, "Path to the Oauth2 token storage file (will be created on first login). Defaults to #{Google::Agenda::Ade::Sync::OAUTH_TOKEN_FILE}"

@@ -87,7 +87,7 @@ module Google::Agenda::Ade::Sync
 
     def self.run(dry_run, config, credentials_file, token_file)
       # Download ICS file from ADE
-      url = config['ics'][0]
+      url = config['ics']
 
       say "Loading events from #{url}..."
       ics_events = load_events(url)
