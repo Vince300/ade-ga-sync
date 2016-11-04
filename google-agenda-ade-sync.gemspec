@@ -36,6 +36,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'commander', '~>4.4.0'
   spec.add_runtime_dependency 'google-api-client', '~>0.9'
   spec.add_runtime_dependency 'launchy', '~>2.0'
+  spec.add_runtime_dependency 'mechanize', '~>2.7'
 
   spec.add_runtime_dependency 'tzinfo-data'
 end

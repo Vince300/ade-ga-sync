@@ -9,7 +9,6 @@ require "googleauth/stores/file_token_store"
 # ADE Sync dependencies
 require "google/agenda/ade/sync/base"
 require "google/agenda/ade/sync/constants"
-require "google/agenda/ade/sync/event_source"
 
 OOB_URI = "urn:ietf:wg:oauth:2.0:oob"
 SCOPE = Google::Apis::CalendarV3::AUTH_CALENDAR
@@ -87,37 +86,33 @@ module Google::Agenda::Ade::Sync
       events
     end
 
-    def self.run(dry_run, config, credentials_file, token_file)
+    def self.run(dry_run, event_source, calendar_name, credentials_file, token_file)
       # Download ICS file from ADE
-      url = config['ics']
-
-      say "Loading events from #{url}..."
-      ics_events = load_events(url)
+      say "Loading events from #{event_source}..."
+      ics_events = event_source.load_events
 
       # Print status about read events
       say "Found #{ics_events.length} events"
 
-      # Authorize Google Agenda
-      calendar_name = config['calendar']
-
-      client = Google::Apis::CalendarV3::CalendarService.new
-      client.client_options.application_name = "ade-ga-sync"
-      client.authorization = authorize(credentials_file, token_file)
-
-      # Load calendar
-      say "Trying to access calendar #{calendar_name}..."
-      calendar = find_calendar_by_name(client, calendar_name)
-
-      if calendar
-        say "Found calendar with id #{calendar.id}"
-      else
-        fail "Calendar #{calendar_name} not found"
-      end
-
-      # Find obsolete events
-      old_events = get_events_to_delete(client, calendar.id, Date.today.to_datetime)
-
       unless dry_run
+        # Authorize Google Agenda
+        client = Google::Apis::CalendarV3::CalendarService.new
+        client.client_options.application_name = "ade-ga-sync"
+        client.authorization = authorize(credentials_file, token_file)
+
+        # Load calendar
+        say "Trying to access calendar #{calendar_name}..."
+        calendar = find_calendar_by_name(client, calendar_name)
+
+        if calendar
+          say "Found calendar with id #{calendar.id}"
+        else
+          fail "Calendar #{calendar_name} not found"
+        end
+
+        # Find obsolete events
+        old_events = get_events_to_delete(client, calendar.id, Date.today.to_datetime)
+
         client.batch do |client|
           # Delete all events
           old_events.each do |e|
@@ -146,10 +141,6 @@ module Google::Agenda::Ade::Sync
           end
         end
       end
-    end
-
-    def self.load_events(url)
-      return EventSource.new(url).load_events
     end
   end
 end

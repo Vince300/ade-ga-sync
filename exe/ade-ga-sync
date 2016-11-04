@@ -5,11 +5,15 @@ require 'commander/import'
 
 require 'google/agenda/ade/sync'
 require 'json'
+require 'date'
 
 program :name, 'ade-ga-sync'
 program :version, Google::Agenda::Ade::Sync::VERSION
 program :description, 'Google Agenda ADE synchronization script'
 program :help, 'Author', 'Vincent Tavernier <vincent.tavernier@ensimag.grenoble-inp.fr>'
+
+# For --skip-verify
+I_KNOW_THAT_OPENSSL_VERIFY_PEER_EQUALS_VERIFY_NONE_IS_WRONG = nil
 
 # Run default script
 
@@ -60,9 +64,31 @@ command :sync do |c|
       ERR
     end
 
+    # Create the event source
+    event_source = nil
+    if config.has_key? 'ics'
+      event_source = Google::Agenda::Ade::Sync::EventSource.new(config['ics'])
+    elsif config.has_key? 'target'
+      username = config['user'] || ask('Username for ADE? ')
+      password = password('Password for ADE? ')
+      days = config['days'] || (2 * 30) # Default to 2-month forward update
+
+      event_source = Google::Agenda::Ade::Sync::AdeEventSource.new(
+        username,
+        password,
+        config['target'],
+        DateTime.now.to_date,
+        DateTime.now.to_date + days
+      )
+    else
+      fail "Could not determine the type of event source, please check your" +
+        " config file."
+    end
+
     # Start entry point
     Google::Agenda::Ade::Sync::EntryPoint.run(options.dry_run,
-                                              config,
+                                              event_source,
+                                              config['calendar'],
                                               options.credentials,
                                               options.token)
   end

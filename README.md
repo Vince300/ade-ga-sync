@@ -46,15 +46,49 @@ doit ressembler au code suivant :
 
 Le fichier `ade-ga-sync.json` permet de définir le nom du calendrier Google à 
 mettre à jour à l'aide des données ADE. *Utiliser un calendrier dédié à cet 
-outil pour éviter de supprimer des évènements hors-ADE.* Il faut aussi définir
-l'URL d'accès au calendrier ADE en suivant les instructions dans le fichier. Un
-exemple de fichier de configuration est représenté ci-dessous :
+outil pour éviter de supprimer des évènements hors-ADE.* 
 
-```json
+#### Méthode 1 : calendrier "extérieur"
+
+La première méthode de synchronisation utilise l'accès publique à ADE. L'URL
+d'accès au calendrier exporté doit être défini dans le fichier de configuration
+comme dans l'exemple ci-dessous :
+
+```javascript
 {
   // URL de téléchargement du fichier ICS depuis ADE, utiliser https://edt.grenoble-inp.fr/directCal/2016-2017/exterieur?resources=
     // et remplacer la valeur de resources en utilisant le paramètre indiqué dans l'URL de la page principale d'ADE
   "ics": "https://edt.grenoble-inp.fr/directCal/2016-2017/exterieur?resources=10347,1043,16322,16315,1072,16326,16325,1108,1112,6213,16333,16334,16320,16300,994,5056,16309,16310,16312,16302,16305,16303,6232,10349",
+  // Nom du calendrier Google dédié au script. Ne pas utiliser l'agenda par défaut
+  // ou les évènements inconnus seront supprimés lors de la mise à jour.
+  "calendar": "Cours"
+}
+```
+
+L'accès publique à ADE ne nécessite pas de mot de passe, mais le calendrier
+exporté ne comporte que les évènements du prochain mois, et ne contient pas les
+informations "privées" (noms des enseignants, etc.)
+
+#### Méthode 2 : accès à ADE privé
+
+La deuxième méthode (ajoutée dans la version 1.1.0) accède à ADE de la même
+manière qu'un navigateur, et passe par la page d'export d'agenda (lien en bas à
+gauche de la page principale). Cette méthode peut exporter les évènements de
+n'importe quelle date, et permet donc de synchroniser l'agenda sur plusieurs
+mois.
+
+Voici un exemple de fichier de configuration pour utiliser cette méthode :
+
+```javascript
+{
+  // URL d'accès à ADE, récupéré depuis Zenith
+  // Note : ne pas utiliser le lien https://edt.grenoble-inp.fr/2016-2017/ensimag/etudiant/jsp/custom/modules/plannings/direct_planning.jsp?resources=...
+  // car l'accès à celui-ci ne peut être automatisé.
+  "target": "https://edt.grenoble-inp.fr/2016-2017/etudiant/ensimag?resources=10347,1043,16322,16315,1072,16326,16325,1108,1112,6213,16333,16334,16320,16300,994,5056,16309,16310,16312,16302,16305,16303,6232,10349",
+  // Nom d'utilisateur pour la connexion (optionnel, sera demandé lors de la connexion)
+  "username": "adeuser",
+  // Nombre de jours à synchroniser à partir d'aujourd'hui
+  "days": 90,
   // Nom du calendrier Google dédié au script. Ne pas utiliser l'agenda par défaut
   // ou les évènements inconnus seront supprimés lors de la mise à jour.
   "calendar": "Cours"

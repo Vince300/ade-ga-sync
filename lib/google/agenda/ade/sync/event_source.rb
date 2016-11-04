@@ -25,6 +25,10 @@ module Google::Agenda::Ade::Sync
       end
     end
 
+    def to_s
+      return "(ics) #{@ics_file}"
+    end
+
     private
       def parse_file(cal_file)
         return Icalendar.parse(cal_file).first.events
