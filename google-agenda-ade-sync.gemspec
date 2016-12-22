@@ -29,8 +29,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", "~> 1.11"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
-  spec.add_development_dependency "codecov"
-  spec.add_development_dependency "codeclimate-test-reporter"
 
   spec.add_runtime_dependency 'icalendar', '~>2.3.0'
   spec.add_runtime_dependency 'commander', '~>4.4.0'
