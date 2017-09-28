@@ -1,4 +1,4 @@
-# google-agenda-ade-sync [![Build Status](https://travis-ci.org/Vince300/ade-ga-sync.svg?branch=master)](https://travis-ci.org/Vince300/ade-ga-sync)
+# google-agenda-ade-sync [![Build Status](https://travis-ci.org/vtavernier/ade-ga-sync.svg?branch=master)](https://travis-ci.org/vtavernier/ade-ga-sync)
 
 google-agenda-ade-sync (anciennement ade-ga-sync) est un programme Ruby de
 synchronisation de l'ADE Ensimag avec Google Agenda, via l'API Google.
@@ -154,7 +154,7 @@ Exécution de la commande principale `ade-ga-sync` :
 Pour utiliser ce gem dans un autre projet, ajouter la ligne suivante au Gemfile :
 
 ```ruby
-gem 'google-agenda-ade-sync', :git => 'https://github.com/Vince300/ade-ga-sync.git', :tag => 'v1.0.0'
+gem 'google-agenda-ade-sync', :git => 'https://github.com/vtavernier/ade-ga-sync.git', :tag => 'v1.0.0'
 ```
 
 Puis exécuter :
@@ -169,7 +169,7 @@ Puis exécuter :
 
 # Contributing
 
-Pull requests et bug reports acceptés sur GitHub à l'adresse https://github.com/Vince300/ade-ga-sync.
+Pull requests et bug reports acceptés sur GitHub à l'adresse https://github.com/vtavernier/ade-ga-sync.
 
 # License
 
