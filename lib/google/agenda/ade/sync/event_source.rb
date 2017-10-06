@@ -5,7 +5,7 @@ require "google/agenda/ade/sync/base"
 
 module Google::Agenda::Ade::Sync
   class EventSource
-    def initialize(ics_file, start_date, end_date)
+    def initialize(ics_file, start_date = nil, end_date = nil)
       @ics_file = ics_file
       @start_date = start_date
       @end_date = end_date
