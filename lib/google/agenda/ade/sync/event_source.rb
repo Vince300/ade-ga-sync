@@ -23,22 +23,24 @@ module Google::Agenda::Ade::Sync
         # Loaded events
         events = []
 
-        # Step through all dates
-        current_start = @start_date
-        @start_date.step(@end_date, 7).drop(1).each do |ed|
-          say "Exporting agenda (#{current_start} to #{ed})"
+        if @start_date.nil?
+          events.concat get_events(@ics_file)
+        else
+          # Step through all dates
+          current_start = @start_date
+          @start_date.step(@end_date, 7).drop(1).each do |ed|
+            say "Exporting agenda (#{current_start} to #{ed})"
 
-          # ICS URL
-          dtfmt = '%Y-%m-%d'
-          full_ics = "#{@ics_file}&firstDate=#{current_start.strftime(dtfmt)}&lastDate=#{ed.strftime(dtfmt)}"
+            # ICS URL
+            dtfmt = '%Y-%m-%d'
+            full_ics = "#{@ics_file}&firstDate=#{current_start.strftime(dtfmt)}&lastDate=#{ed.strftime(dtfmt)}"
 
-          # Parse into events
-          open(full_ics) do |cal_file|
-            events.concat parse_file(cal_file)
+            # Parse into events
+            events.concat get_events(full_ics)
+
+            # Next bound
+            current_start = ed + 1
           end
-
-          # Next bound
-          current_start = ed + 1
         end
 
         return events
@@ -50,6 +52,12 @@ module Google::Agenda::Ade::Sync
     end
 
     private
+      def get_events(full_ics)
+        open(full_ics) do |cal_file|
+          return parse_file(cal_file)
+        end
+      end
+
       def parse_file(cal_file)
         return Icalendar.parse(cal_file).first.events
       end
