@@ -66,12 +66,15 @@ command :sync do |c|
 
     # Create the event source
     event_source = nil
+    days = config['days'] || (2 * 30) # Default to 2-month forward update
+
     if config.has_key? 'ics'
-      event_source = Google::Agenda::Ade::Sync::EventSource.new(config['ics'])
+      event_source = Google::Agenda::Ade::Sync::EventSource.new(config['ics'],
+                                                                DateTime.now.to_date,
+                                                                DateTime.now.to_date + days)
     elsif config.has_key? 'target'
       username = config['user'] || ask('Username for ADE? ')
       password = password('Password for ADE? ')
-      days = config['days'] || (2 * 30) # Default to 2-month forward update
 
       event_source = Google::Agenda::Ade::Sync::AdeEventSource.new(
         username,

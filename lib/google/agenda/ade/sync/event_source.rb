@@ -5,8 +5,10 @@ require "google/agenda/ade/sync/base"
 
 module Google::Agenda::Ade::Sync
   class EventSource
-    def initialize(ics_file)
+    def initialize(ics_file, start_date, end_date)
       @ics_file = ics_file
+      @start_date = start_date
+      @end_date = end_date
     end
 
     # Loads events from the configured source file
@@ -18,10 +20,28 @@ module Google::Agenda::Ade::Sync
           return parse_file(cal_file)
         end
       else
-        # Open using default open (maybe open-uri)
-        open(@ics_file) do |cal_file|
-          return parse_file(cal_file)
+        # Loaded events
+        events = []
+
+        # Step through all dates
+        current_start = @start_date
+        @start_date.step(@end_date, 7).drop(1).each do |ed|
+          say "Exporting agenda (#{current_start} to #{ed})"
+
+          # ICS URL
+          dtfmt = '%Y-%m-%d'
+          full_ics = "#{@ics_file}&firstDate=#{current_start.strftime(dtfmt)}&lastDate=#{ed.strftime(dtfmt)}"
+
+          # Parse into events
+          open(full_ics) do |cal_file|
+            events.concat parse_file(cal_file)
+          end
+
+          # Next bound
+          current_start = ed + 1
         end
+
+        return events
       end
     end
 
