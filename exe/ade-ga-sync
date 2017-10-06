@@ -88,11 +88,23 @@ command :sync do |c|
         " config file."
     end
 
+    # Parse the filters, and create a filtering proc
+    filters = (config['filters'] || []).collect do |filter|
+      Hash[filter.map { |k,v| [ k.to_sym, Regexp.new(v) ] }]
+    end
+
+    filter_proc = proc do |event|
+      filters.length == 0 or (filters.any? do |filter|
+          filter.all? { |symbol, regex| event.send(symbol) =~ regex }
+        end)
+      end
+
     # Start entry point
     Google::Agenda::Ade::Sync::EntryPoint.run(options.dry_run,
                                               event_source,
                                               config['calendar'],
                                               options.credentials,
-                                              options.token)
+                                              options.token,
+                                              filter_proc)
   end
 end

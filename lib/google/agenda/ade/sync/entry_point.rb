@@ -86,13 +86,20 @@ module Google::Agenda::Ade::Sync
       events
     end
 
-    def self.run(dry_run, event_source, calendar_name, credentials_file, token_file)
+    def self.run(dry_run, event_source, calendar_name, credentials_file, token_file, filter_proc)
       # Download ICS file from ADE
       say "Loading events from #{event_source}..."
       ics_events = event_source.load_events
 
       # Print status about read events
       say "Found #{ics_events.length} events"
+
+      # Filter events
+      filtered_events = ics_events.select(&filter_proc).to_a
+      if filtered_events.length <= ics_events.length
+        say "#{filtered_events.length} events left after filtering"
+        ics_events = filtered_events
+      end
 
       unless dry_run
         # Authorize Google Agenda
