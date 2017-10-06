@@ -69,6 +69,14 @@ L'accès publique à ADE ne nécessite pas de mot de passe, mais le calendrier
 exporté ne comporte que les évènements du prochain mois, et ne contient pas les
 informations "privées" (noms des enseignants, etc.)
 
+#### Méthode 1.b : calendrier "extérieur" publique (ADE Polytech)
+
+Les versions plus récentes d'ADE permettent un accès plus libre au calendrier
+extérieur, et permettent notamment l'export d'évènements pour n'importe quelles
+dates. Si le paramètre `days` est spécifié, la méthode décrite dans `ADE privé`
+sera utilisée pour exporter tous les évènements d'aujourd'hui à `days` jours
+dans le futur.
+
 #### Méthode 2 : accès à ADE privé
 
 La deuxième méthode (ajoutée dans la version 1.1.0) accède à ADE de la même
@@ -94,6 +102,60 @@ Voici un exemple de fichier de configuration pour utiliser cette méthode :
   "calendar": "Cours"
 }
 ```
+
+#### Filtres
+
+Dans l'éventualité où il est impossible de sélectionner les cours voulus à
+l'aide des identifiants de ressource dans l'URL, une fonctionnalité de filtrage
+a été ajoutée. Voici quelques exemples de filtres (à ajouter à une configuration
+existante) :
+
+```javascript
+// N'inclure que les cours dont le titre contient (Math)
+{
+  "filters": [
+    {
+      "summary": "\\(Math\\)"
+    }
+  ]
+}
+
+// N'inclure que les cours dont la description contient TP
+{
+  "filters": [
+    {
+      "description": "TP"
+    }
+  ]
+}
+
+// N'include que les cours dont le titre contient (Math) ET la description TP
+{
+  "filters": [
+    {
+      "summary": "\\(Math\\)"
+      "description": "TP"
+    }
+  ]
+}
+
+// N'include que les cours dont le titre contient (Math) OU la description TP
+{
+  "filters": [
+    {
+      "summary": "\\(Math\\)"
+    },
+    {
+      "description": "TP"
+    }
+    }
+  ]
+}
+```
+
+Seuls les évènements passant les critères de filtrage seront ajoutés à l'agenda.
+Les évènements existants ne passant plus les filtres actuels seront retirés de
+l'agenda.
 
 ### Synchronisation
 
@@ -161,17 +223,17 @@ Puis exécuter :
 
     $ bundle
 
-## Development
+## Développement
 
 * Installation des dépendances depuis le dépôt : `bin/setup`.
 * Exécution des tests : `rake test`.
 * Console de test : `bin/console`.
 
-# Contributing
+# Contribuer
 
 Pull requests et bug reports acceptés sur GitHub à l'adresse https://github.com/vtavernier/ade-ga-sync.
 
-# License
+# Licence
 
 MIT License
 
